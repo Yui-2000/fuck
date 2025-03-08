@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contador de Frase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-image: url('hikki.jpg'); /* Reemplaza con la URL o ruta de tu imagen */
+            background-size: cover;
+            background-position: center;
+        }
+        #phrase {
+            font-size: 72px;
+            font-weight: bold;
+        }
+        .orange {
+            color: rgb(255, 94, 0);
+        }
+        .black {
+            color: black;
+        }
+        .hidden {
+            display: none;
+        }
+        #counter {
+            font-size: 24px;
+            margin-top: 20px;
+            color: orange;
+        }
+    </style>
+</head>
+<body>
+    <p id="phrase"></p>
+    <p id="counter">Wait...</p>
+    
+    <div id="downloads" class="hidden">
+        <h2>Shitty Letters</h2>
+        <button onclick="downloadFile('Worries Are Stupid.pdf')">Worries are stupid(1 Letter)</button>
+        <button onclick="downloadFile('Pains.pdf')">Pains (2 Letter)</button>
+        <button onclick="downloadFile('For yall.pdf')">For yall (3 Letter)</button>
+        <button onclick="downloadFile('Too Coward To Die.pdf')">TcTd (4 letter)</button>
+    </div>
+    
+    <script>
+        const phrases = [
+            "<span class='orange'>T</span><span class='black'>c</span><span class='orange'>T</span><span class='black'>d</span>",
+            "<span class='orange'>Too</span> <span class='black'>c</span> <span class='orange'>T</span><span class='black'>d</span>",
+            "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>T</span><span class='black'>d</span>",
+            "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>To</span> <span class='black'>d</span>",
+            "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>To</span> <span class='black'>die</span>"
+        ];
+
+        async function getCostaRicaTime() {
+            try {
+                let response = await fetch("https://worldtimeapi.org/api/timezone/America/Costa_Rica");
+                let data = await response.json();
+                return new Date(data.datetime);
+            } catch (error) {
+                console.error("Error obteniendo la hora de Costa Rica:", error);
+                return new Date();
+            }
+        }
+
+        async function getProgressIndex() {
+            const startDate = new Date("2025-03-12");
+            const targetDate = new Date("2025-07-12");
+            const now = await getCostaRicaTime();
+
+            if (now >= targetDate) {
+                return phrases.length - 1;
+            }
+
+            let monthsPassed = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+            return Math.min(monthsPassed, phrases.length - 1);
+        }
+
+        async function updatePhrase() {
+            let index = await getProgressIndex();
+            document.getElementById("phrase").innerHTML = phrases[index];
+            if (index === phrases.length - 1) {
+                document.getElementById("downloads").classList.remove("hidden");
+            }
+        }
+
+        async function updateCountdown() {
+            const targetDate = new Date("2025-07-12T00:00:00-06:00");
+            const now = await getCostaRicaTime();
+            const timeDifference = targetDate - now;
+
+            if (timeDifference > 0) {
+                const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+                document.getElementById("counter").innerText = ` ${days}d ${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                document.getElementById("counter").innerText = "Fuck yall";
+            }
+        }
+
+        async function initialize() {
+            await updatePhrase();
+            await updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        initialize();
+
+        function downloadFile(fileName) {
+            const link = document.createElement('a');
+            link.href = fileName;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
