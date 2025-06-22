@@ -1,128 +1,257 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fuck yall</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-image: url('hikki.jpg');
-            background-size: cover;
-            background-position: center;
-        }
-        #phrase {
-            font-size: 72px;
-            font-weight: bold;
-        }
-        .orange {
-            color: rgb(255, 94, 0);
-        }
-        .black {
-            color: black;
-        }
-        .hidden {
-            display: none;
-        }
-        #counter {
-            font-size: 24px;
-            margin-top: 20px;
-            color: orange;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contador de Frase con lluvia solo al 0</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      background-image: url('hikki.jpg');
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      transition: color 0.5s ease;
+    }
+
+    /* Overlay oscuro solo activo con clase */
+    body.overlay-dark::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #phrase {
+      font-size: 72px;
+      font-weight: bold;
+      position: relative;
+      z-index: 10;
+      color: black;
+      transition: color 0.5s ease;
+      user-select: none;
+    }
+    body.overlay-dark #phrase {
+      color: white;
+      text-shadow: 0 0 8px rgba(0,0,0,0.7);
+    }
+
+    .orange {
+      color: rgb(255, 94, 0);
+      text-shadow: 0 0 8px rgb(255, 94, 0);
+    }
+    .black {
+      color: black;
+    }
+    body.overlay-dark .black {
+      color: white;
+      text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+
+    #counter {
+      font-size: 24px;
+      margin-top: 20px;
+      color: orange;
+      position: relative;
+      z-index: 10;
+      user-select: none;
+      transition: color 0.5s ease;
+    }
+    body.overlay-dark #counter {
+      color: white;
+    }
+
+    #downloads {
+      position: relative;
+      z-index: 10;
+      margin-top: 20px;
+      color: black;
+      user-select: none;
+      transition: color 0.5s ease;
+    }
+    body.overlay-dark #downloads {
+      color: white;
+    }
+
+    .hidden {
+      display: none;
+    }
+    /* Lluvia */
+    #rain {
+      pointer-events: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 5;
+      display: none;
+    }
+    #rain.active {
+      display: block;
+    }
+    .drop {
+      position: absolute;
+      bottom: 100%;
+      width: 2px;
+      background: rgba(174,194,224,0.5);
+      animation-name: fall;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      border-radius: 50%;
+    }
+    @keyframes fall {
+      to {
+        transform: translateY(110vh);
+      }
+    }
+  </style>
 </head>
 <body>
-    <p id="phrase"></p>
-    <p id="counter">Wait...</p>
+  <p id="phrase"></p>
+  <p id="counter">Wait...</p>
+
+  <div id="downloads" class="hidden">
+    <h2>Shitty Letters</h2>
+    <button onclick="downloadFile('Worries Are Stupid.pdf')">Worries are stupid (1 Letter)</button>
+    <button onclick="downloadFile('Pains.pdf')">Pains (2 Letter)</button>
+    <button onclick="downloadFile('For yall.pdf')">For yall (3 Letter)</button>
+    <button onclick="downloadFile('Too Coward To Die.pdf')">TcTd (4 Letter)</button>
+  </div>
+
+  <audio id="zeldaSound" src="zelda_chest.mp3"></audio>
+
+  <div id="rain"></div>
+
+  <script>
+    const phrases = [
+      "<span class='orange'>T</span><span class='black'>c</span><span class='orange'>T</span><span class='black'>d</span>",
+      "<span class='orange'>Too</span> <span class='black'>c</span> <span class='orange'>T</span><span class='black'>d</span>",
+      "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>T</span><span class='black'>d</span>",
+      "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>To</span> <span class='black'>d</span>",
+      "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>To</span> <span class='black'>die</span>"
+    ];
+
+    const targetDate = new Date("2025-07-12T00:00:00-06:00");
     
-    <div id="downloads" class="hidden">
-        <h2>Shitty Letters</h2>
-        <button onclick="downloadFile('Worries Are Stupid.pdf')">Worries are stupid(1 Letter)</button>
-        <button onclick="downloadFile('Pains.pdf')">Pains (2 Letter)</button>
-        <button onclick="downloadFile('For yall.pdf')">For yall (3 Letter)</button>
-        <button onclick="downloadFile('Too Coward To Die.pdf')">TcTd (4 letter)</button>
-    </div>
-    
-    <script>
-        const phrases = [
-            "<span class='orange'>T</span><span class='black'>c</span><span class='orange'>T</span><span class='black'>d</span>",
-            "<span class='orange'>Too</span> <span class='black'>c</span> <span class='orange'>T</span><span class='black'>d</span>",
-            "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>T</span><span class='black'>d</span>",
-            "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>To</span> <span class='black'>d</span>",
-            "<span class='orange'>Too</span> <span class='black'>coward</span> <span class='orange'>To</span> <span class='black'>die</span>"
-        ];
+    async function getCostaRicaTime() {
+  try {
+    const response = await fetch("https://worldtimeapi.org/api/timezone/America/Costa_Rica");
+    const data = await response.json();
+    return new Date(data.datetime);
+  } catch {
+    return new Date();
+  }
+}
 
-        async function getCostaRicaTime() {
-            try {
-                let response = await fetch("https://worldtimeapi.org/api/timezone/America/Costa_Rica");
-                let data = await response.json();
-                return new Date(data.datetime);
-            } catch (error) {
-                console.error("Error obteniendo la hora de Costa Rica:", error);
-                return new Date();
-            }
+    async function getProgressIndex(now) {
+      const startDate = new Date("2025-03-12");
+      if (now >= targetDate) return phrases.length - 1;
+
+      let monthsPassed = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+      return Math.min(monthsPassed, phrases.length - 1);
+    }
+
+    async function updatePhrase(now) {
+      const index = await getProgressIndex(now);
+      document.getElementById("phrase").innerHTML = phrases[index];
+    }
+
+    function startRain() {
+      const rainContainer = document.getElementById('rain');
+      if (rainContainer.childElementCount > 0) return;
+
+      const dropsCount = 100;
+      for (let i = 0; i < dropsCount; i++) {
+        const drop = document.createElement('div');
+        drop.classList.add('drop');
+        drop.style.left = Math.random() * 100 + 'vw';
+        drop.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
+        drop.style.animationDelay = (Math.random() * 5) + 's';
+        drop.style.height = (Math.random() * 20 + 10) + 'px';
+        rainContainer.appendChild(drop);
+      }
+    }
+
+    let konamiActivated = false;
+
+    async function updateCountdown() {
+      const now = await getCostaRicaTime();
+      const diff = targetDate - now;
+
+      if (diff > 0) {
+        document.body.classList.remove('overlay-dark');
+        document.getElementById('rain').classList.remove('active');
+        await updatePhrase(now);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        document.getElementById('counter').innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        if (!konamiActivated) {
+          document.getElementById('downloads').classList.add('hidden');
         }
-
-        async function getProgressIndex() {
-            const startDate = new Date("2025-03-12");
-            const targetDate = new Date("2025-07-12");
-            const now = await getCostaRicaTime();
-
-            if (now >= targetDate) {
-                return phrases.length - 1;
-            }
-
-            let monthsPassed = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
-            return Math.min(monthsPassed, phrases.length - 1);
+      } else {
+        document.body.classList.add('overlay-dark');
+        document.getElementById('rain').classList.add('active');
+        startRain();
+        document.getElementById('phrase').innerHTML = phrases[phrases.length - 1];
+        document.getElementById('counter').innerText = "Loading?";
+        if (!konamiActivated) {
+          document.getElementById('downloads').classList.add('hidden');
         }
+      }
+    }
 
-        async function updatePhrase() {
-            let index = await getProgressIndex();
-            document.getElementById("phrase").innerHTML = phrases[index];
-            if (index === phrases.length - 1) {
-                document.getElementById("downloads").classList.remove("hidden");
-            }
+    async function initialize() {
+      await updateCountdown();
+      setInterval(updateCountdown, 1000);
+    }
+
+    initialize();
+
+    function downloadFile(fileName) {
+      const link = document.createElement('a');
+      link.href = fileName;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    const konamiCode = [
+      "ArrowUp", "ArrowUp",
+      "ArrowDown", "ArrowDown",
+      "ArrowLeft", "ArrowRight",
+      "ArrowLeft", "ArrowRight",
+      "b", "a", "Enter"
+    ];
+    let konamiPosition = 0;
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === konamiCode[konamiPosition]) {
+        konamiPosition++;
+        if (konamiPosition === konamiCode.length) {
+          konamiActivated = true;
+          document.getElementById("zeldaSound").play();
+          document.getElementById("downloads").classList.remove("hidden");
+          konamiPosition = 0;
         }
-
-        async function updateCountdown() {
-            const targetDate = new Date("2025-07-12T00:00:00-06:00");
-            const now = await getCostaRicaTime();
-            const timeDifference = targetDate - now;
-
-            if (timeDifference > 0) {
-                const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-                document.getElementById("counter").innerText = ` ${days}d ${hours}h ${minutes}m ${seconds}s`;
-            } else {
-                document.getElementById("counter").innerText = "Fuck yall";
-            }
-        }
-
-        async function initialize() {
-            await updatePhrase();
-            await updateCountdown();
-            setInterval(updateCountdown, 1000);
-        }
-
-        initialize();
-
-        function downloadFile(fileName) {
-            const link = document.createElement('a');
-            link.href = fileName;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
+      } else {
+        konamiPosition = 0;
+      }
+    });
+  </script>
 </body>
 </html>
